@@ -7,22 +7,38 @@
 #include "initialize_leds.h"
 #include "state_machine_logic.h"
 
-/* This results in approximately 0.5s of delay assuming 32 MHz CPU_CLK */
-#define DELAY (16000000)
+/* This results in approximately 1s of delay assuming 32 MHz CPU_CLK */
+#define DELAY (32000000)
 
 int main(void)
 {
     InitializeGPIO();
+    InitializeStates();
     
-    int state = OFF; // initialize state machine
+    int state_A = 0; // initialize state machine
+    int state_B = 0;
 
     // Functional
     while (1) {
-        int output = GetStateOutputGPIOA(state);
-        GPIOA->DOUT31_0 = output;
+        GPIOA->DOE31_0 = LEDA_states[state_A].output | LEDB_states[state_B].output;
 
-        state = GetNextState(state);
+        state_B = LEDB_states[state_B].next_state;
+
+        if (state_B == 0) {
+            state_A = LEDA_states[state_A].next_state;
+        }
+
         delay_cycles(DELAY);
+        
+        // for (int A=0; A<12; A++) {
+        //     for (int B=0; B<12; B++) {
+        //         output = GetStateOutputGPIOA(state_B, B, 1) | GetStateOutputGPIOA(state_A, A, 0);;
+        //         GPIOA->DOE31_0 = output;
+                
+        //         state_B = GetNextState(state_B);
+        //         delay_cycles(DELAY);
+        //     }
+        // }
     }
 }
 
